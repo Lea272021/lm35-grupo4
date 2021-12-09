@@ -124,7 +124,7 @@ void estadoLed()
     Serial.println();
   }
   // Estado critico
-  if (temp >= 30)
+  if (temp > 30)
   {
     digitalWrite(ledVerde, LOW);
     digitalWrite(ledRojo, HIGH);
