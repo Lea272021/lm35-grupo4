@@ -111,7 +111,7 @@ void estadoLed()
     digitalWrite(ledRojo, LOW);
     digitalWrite(ledVerde, HIGH);
     digitalWrite(ledAmarillo, LOW);
-    Serial.print("Normal");
+    ESTADO = "NORMAL";
     Serial.println();
   }
   // Estado alerta
@@ -120,7 +120,7 @@ void estadoLed()
     digitalWrite(ledVerde, LOW);
     digitalWrite(ledRojo, LOW);
     digitalWrite(ledAmarillo, HIGH);
-    Serial.print("Precaución");
+    ESTADO="PRECAUCION";
     Serial.println();
   }
   // Estado critico
@@ -129,7 +129,7 @@ void estadoLed()
     digitalWrite(ledVerde, LOW);
     digitalWrite(ledRojo, HIGH);
     digitalWrite(ledAmarillo, LOW);
-    Serial.print("Critico");
+    ESTADO="CRITICO";
     Serial.println();
   }
 }
@@ -194,7 +194,7 @@ void pulsadorDeCorte()
 void publicar()
 {
   //Se envia el estado de temperatura y el valor de temperatura
-  String mensaje = "{\"topico1\":" + ESTADO + ",\"topico2\":" + String(temp) + "}";
+  String mensaje = "{\"topico1\": \" " + ESTADO + " \" ,\"topico2\":" + String(temp) + "}";
   client.publish("Temp", mensaje);
 
 }
