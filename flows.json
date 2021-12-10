@@ -22,7 +22,7 @@
         "y": 180,
         "wires": [
             [
-                "b3c976691a28f880"
+                "9966ccfa7cd738d1"
             ]
         ]
     },
@@ -35,11 +35,11 @@
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
+        "complete": "true",
+        "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 530,
+        "x": 730,
         "y": 180,
         "wires": []
     },
@@ -58,17 +58,66 @@
         "keyname": "",
         "dburl": "",
         "usetls": false,
-        "x": 360,
-        "y": 300,
+        "x": 390,
+        "y": 400,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "d6bc23c1d3ecd2b9",
+        "type": "function",
+        "z": "ca7c14a3d1011380",
+        "name": "",
+        "func": "var otrmsg={ topic: \"INSERT INTO sensor_uno(estado,temperatura) VALUES(\\\"\"+msg.payload.topico1 + \"\\\",\" + msg.payload.topico2 + \");\"};\n\nreturn otrmsg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 180,
+        "wires": [
+            [
+                "b3c976691a28f880",
+                "6ab55ea3e51a343b"
+            ]
+        ]
+    },
+    {
+        "id": "6ab55ea3e51a343b",
+        "type": "mysql",
+        "z": "ca7c14a3d1011380",
+        "mydb": "358c032895ce0bec",
+        "name": "",
+        "x": 750,
+        "y": 400,
         "wires": [
             []
+        ]
+    },
+    {
+        "id": "9966ccfa7cd738d1",
+        "type": "json",
+        "z": "ca7c14a3d1011380",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 350,
+        "y": 180,
+        "wires": [
+            [
+                "d6bc23c1d3ecd2b9"
+            ]
         ]
     },
     {
         "id": "0f64b10e24764197",
         "type": "mqtt-broker",
         "name": "Broker Local",
-        "broker": "192.168.1.38",
+        "broker": "10.20.0.39",
         "port": "1883",
         "clientid": "",
         "usetls": false,
@@ -88,5 +137,15 @@
         "willPayload": "",
         "willMsg": {},
         "sessionExpiry": ""
+    },
+    {
+        "id": "358c032895ce0bec",
+        "type": "MySQLdatabase",
+        "name": "GRUPO4IOT",
+        "host": "localhost",
+        "port": "3306",
+        "db": "GRUPO4IOT",
+        "tz": "-3",
+        "charset": "UTF8"
     }
 ]
