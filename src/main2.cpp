@@ -5,8 +5,8 @@
 #include <ctime>
 
 // Red
-const char ssid[] = "TPP055FC9";
-const char pass[] = "16AZUL12";
+const char ssid[] = "";
+const char pass[] = "";
 
 WiFiClient net;
 MQTTClient client;
