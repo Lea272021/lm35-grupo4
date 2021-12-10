@@ -1,0 +1,40 @@
+/** Crear base de datos y tabla **/
+-Entrar a MySql
+sudo mysql
+-Crear base de Datos
+CREATE DATABASE GRUPO4IOT;
+-Verificar que se creo la base de datos
+SHOW DATABASES;
+-Seleccionar la base de datos para crear la tabla
+USE GRUPO4IOT;
+-Crear Tabla
+CREATE TABLE IF NOT EXISTS sensor_uno(id_sensor INT AUTO_INCREMENT PRIMARY KEY, 
+estado VARCHAR(15) NOT NULL, temperatura FLOAT, tiempo TIMESTAMP DEFAULT CURRENT_TIMESTAMP)ENGINE=INNODB;
+-Verificar que se creo la tabla
+SHOW TABLES;
+
+/** Crear usuario que no sea ROOT **/
+-Creamos user y password
+CREATE USER 'grupo4'@'localhost' IDENTIFIED BY 'Grupo@1234';
+-Agregamos privilegios
+FLUSH PRIVILEGES;
+GRANT SELECT ON *.* TO 'grupo4'@'localhost';
+FLUSH PRIVILEGES;
+GRANT ALL PRIVILEGES ON GRUPO4IOT.* TO 'grupo4'@'localhost';
+FLUSH PRIVILEGES;
+-Verificamos que creamos al usuario correctamente
+SELECT user, host FROM mysql.user;
+-Agregamos el comando que no se sabia para que era, pero era necesario
+ALTER USER 'grupo4'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Grupo@1234';
+-Agregamos otro privilegio
+FLUSH PRIVILEGES;
+-Nos salimos de mysql para probar el nuevo usuario
+EXIT
+
+/** Ingresando a mysql con el nuevo usuario **/
+-En el usuario de linux, fuera de mysql tipeamos
+mysql -u grupo4 -p
+-Tipeamos el password, que no lo mostrara y damos enter
+Grupo@1234
+
+y listo, nuestra base y usuario fue creado.
