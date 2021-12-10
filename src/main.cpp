@@ -4,194 +4,179 @@
 #include <stdlib.h>
 #include <ctime>
 
-//Red
-const char ssid[] = "TPP055FC9";
-const char pass[] = "16AZUL12";
+// Red
+const char ssid[] = "SPEEDY-0B414A";
+const char pass[] = "2324725187";
 
 WiFiClient net;
 MQTTClient client;
 
 #define cantMuestras 20
 
-//FUNCIONES
-void leerTemperatura(void);
+// FUNCIONES
+float LeerTemperatura(void);
 void estadoLed(void);
 void apagarLeds(void);
-void limpiarVariables(void);
 void publicar(void);
 void pulsadorDeCorte(void);
-//void connect(void);
-float getTemp(void);
+void connect(void);
 
-//Pines de los Leds
+// Pines de los Leds
 const int8_t ledInterno = 2;
-const int8_t ledRojo = 33, ledAmarillo = 32, ledVerde = 25, button = 27; //sensor = 13;
+const int8_t ledRojo = 33, ledAmarillo = 32, ledVerde = 25, button = 27;
 
-
-//Variables de temperatura
+// Variables de temperatura
 float temperatura;
+float temp;
 
-//Variable global String
+// Variable global String
+// uint8_t ESTADO;
 String ESTADO;
 String mensaje;
 
-//Timer incial
+// Timer incial
 unsigned long tiempoInicio = 0;
 unsigned long timerDelay = 500;
+;
 
-//Variables auxiliares
-static int8_t pulsador = 0, cont = 0;
-static float suma = 0.0, promTemperatura;
+// Variables auxiliares
+static int8_t pulsador = 0;
 
+void setup()
+{
 
-void setup() {
-   
   Serial.begin(115200);
   pinMode(ledInterno, OUTPUT); // Se utilizo para visualizar a simple vista si el pulsador fue accionado o si hay rebotes
   pinMode(ledRojo, OUTPUT);
   pinMode(ledVerde, OUTPUT);
   pinMode(ledAmarillo, OUTPUT);
-  //pinMode(sensor, INPUT);
-  pinMode(button, INPUT_PULLUP); //Al accionarse el pulsador se recibe un cero
+  pinMode(button, INPUT_PULLUP); // Al accionarse el pulsador se recibe un cero
 
-  WiFi.begin(ssid, pass);   //NOMBRE DE LA RED WIFI Y CONTRASEÑA
-  client.begin("192.168.11.170", 1883, net);
+  WiFi.begin(ssid, pass); // NOMBRE DE LA RED WIFI Y CONTRASEÑA
+  client.begin("192.168.1.38", 1883, net);
   connect();
 
   srand(time(NULL));
-
 }
 
-void loop() {
+void loop()
+{
 
+  while (digitalRead(button) == 1)
+    ; // Cuando el pulsador es accionado sale del bucle while
 
-  while (digitalRead(button) == 1); //Cuando el pulsador es accionado sale del bucle while
-  
   pulsador = !digitalRead(button);
-  
-  client.loop();        //Si o si tiene que estar Actualiza el estado de mi cliente MQTT
 
-  if (!client.connected()) {  //Me aseguro que este conectado
+  client.loop(); // Si o si tiene que estar Actualiza el estado de mi cliente MQTT
+
+  if (!client.connected())
+  { // Me aseguro que este conectado
     connect();
   }
-   
+
   delay(300);
 
   while (pulsador == 1)
   {
     digitalWrite(ledInterno, HIGH);
-    leerTemperatura();
-    cont++;
-    
-    //cantMuestras es un valor de la cantidad de veces que se sumara la temperatura y se hara el promedio para obtener el valor de temperatura final
-    while (cont == cantMuestras)
+
+    // Se coloca la condicion "|| tiempoInicio==0" para que entre en el IF en la primer ejecucion del programa
+    // Cada cierto tiempo timerDelay
+    if ((millis() - tiempoInicio) == timerDelay || tiempoInicio == 0)
     {
-      
-      if ((millis() - tiempoInicio) == timerDelay || tiempoInicio == 0 ) //Se coloca la condicion "|| tiempoInicio==0" para que entre en el IF en la primer ejecucion del programa
-      { //Cada 5 seg(5000ms) se muestra el valor de temperatura
-        
-        Serial.print(promTemperatura, 1);
-        Serial.println();
-        estadoLed();
-
-        publicar();
-
-        tiempoInicio = millis();
-        limpiarVariables();
-      }
-      pulsadorDeCorte();
-
+      temp = LeerTemperatura();
+      Serial.print(temp);
+      Serial.println();
+      estadoLed();
+      publicar();
+      tiempoInicio = millis();
     }
+    pulsadorDeCorte();
   }
 
-  limpiarVariables();
   apagarLeds();
-
   delay(500);
-
 }
 
-
-//==========ADQUISICION DE DATOS A TRAVES DEL ADC Y CONVERSION A °C=============
-
-void leerTemperatura()
-{
-  //Se simula un sensor de temperatura
-
-  temperatura = ((rand()%40+(260/113))+20+(260/113))/1.1; //Rango aproximado de 22 a 58°C de num decimales
-  suma = suma + temperatura;
-  promTemperatura = suma / cantMuestras; 
-
-}
-
-
-//*****DETECTA MEDIDAS FUERA DEL RANGO DE TEMP PERMITIDO, GENERANDO ESTADO DE ALERTA*******
-
+//**DETECTA MEDIDAS FUERA DEL RANGO DE TEMP PERMITIDO, GENERANDO ESTADO DE ALERTA**
 void estadoLed()
 {
-
-  //Estado normal
-  if (promTemperatura <= 25)
+  // Estado normal
+  if (temp <= 25)
   {
 
     digitalWrite(ledRojo, LOW);
     digitalWrite(ledVerde, HIGH);
     digitalWrite(ledAmarillo, LOW);
-    //Serial.print("Normal");
-    char estado1[7] = "NORMAL";
-    ESTADO = String(estado1);
+    ESTADO = "NORMAL";
     Serial.println();
-
   }
 
-  //Estado alerta
-  if (promTemperatura > 25 && promTemperatura <= 30)
+  // Estado alerta
+  if (temp > 25 && temp <= 30)
   {
     digitalWrite(ledVerde, LOW);
     digitalWrite(ledRojo, LOW);
     digitalWrite(ledAmarillo, HIGH);
-    //Serial.print("Precaución");
-    char estado2[11] = "PRECAUCION";
-    ESTADO = String(estado2);
+    ESTADO = "PRECAUCION";
     Serial.println();
   }
 
-  //Estado critico
-  if (promTemperatura >= 30)
+  // Estado critico
+  if (temp >= 30)
   {
     digitalWrite(ledVerde, LOW);
     digitalWrite(ledRojo, HIGH);
     digitalWrite(ledAmarillo, LOW);
-    //Serial.print("Critico");
-    char estado3[8] = "CRITICO";
-    ESTADO = String(estado3);
+    ESTADO = "CRITICO";
     Serial.println();
   }
-
 }
 
-
 //++++++APAGA TODO LOS LEDS LUEGO DE PULSAR POR 2da VEZ EL BUTTON+++++++
-
 void apagarLeds()
 {
   digitalWrite(ledInterno, LOW);
-
   digitalWrite(ledRojo, LOW);
   digitalWrite(ledVerde, LOW);
   digitalWrite(ledAmarillo, LOW);
 }
 
-
-//###########COLOCA LAS VARIABLES EN CERO###############
-
-void limpiarVariables()
+// Valores de temperatura
+float LeerTemperatura()
 {
-  suma = 0.0;
-  promTemperatura = 0.0;
-  cont = 0;
+  float vect[20] = {10.2,
+                    13.2,
+                    19.2,
+                    25.3,
+                    33.8,
+                    27.9,
+                    40.3,
+                    31.5,
+                    42.9,
+                    57.6,
+                    24.5,
+                    31.3,
+                    28.9,
+                    33.3,
+                    38.8,
+                    26.4,
+                    42.9,
+                    21.5,
+                    40.9,
+                    61.6};
+  static int i = 0;
+  if (i < 19)
+  {
+    i++;
+  }
+  else
+  {
+    i = 0;
+  }
+  float aux = vect[i];
+  return aux;
 }
-
 
 //---SE PRESIONA POR SEGUNDA VEZ EL BOTON Y SALE DEL BUCLE WHILE------
 void pulsadorDeCorte()
@@ -200,37 +185,37 @@ void pulsadorDeCorte()
   {
     pulsador = 0;
     tiempoInicio = 0;
-    limpiarVariables();
   }
 }
 
-//______________PUBLICAR______________
+//_____PUBLICAR_____
 void publicar()
 {
-  //Se envia el estado de temperatura y el valor de temperatura
-  String mensaje = "{\"topico1\":" + ESTADO + ",\"topico2\":" + String(promTemperatura, 1) + "}";
-  client.publish("Temp", mensaje);
+  // Se envia el estado de temperatura y el valor de temperatura
 
+  String mensaje = "{\"topico1\": \" " + ESTADO + " \" ,\"topico2\":" + String(temp) + "}";
+  client.publish("Temp", mensaje);
 }
 
+//_____CONEXION_______
+void connect()
+{
 
-//______________CONEXION__________________
-void connect() {
-
-  //Conectar wifi
+  // Conectar wifi
   Serial.print("checking wifi...");
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     Serial.print(".");
     delay(1000);
   }
 
-  //Conectar al brocker MQTT
+  // Conectar al brocker MQTT
   Serial.print("\nconnecting...");
-  while (!client.connect("arduino")) { //, "public", "public")) {
+  while (!client.connect("arduino"))
+  { //, "public", "public")) {
     Serial.print(".");
     delay(1000);
   }
 
   Serial.println("\nconnected!");
-
 }
