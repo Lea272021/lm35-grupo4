@@ -5,8 +5,8 @@
 #include <ctime>
 
 // Red
-const char ssid[] = "asdfasdf";
-const char pass[] = "asdfasdfasdf";
+const char ssid[] = "TPP055FC9";
+const char pass[] = "16AZUL12";
 
 WiFiClient net;
 MQTTClient client;
@@ -31,7 +31,7 @@ float temp;
 
 // Variable global String
 // uint8_t ESTADO;
-String ESTADO;
+String ESTADO = "TEMP";
 String mensaje;
 
 // Timer incial
@@ -53,7 +53,7 @@ void setup()
   pinMode(button, INPUT_PULLUP); // Al accionarse el pulsador se recibe un cero
 
   WiFi.begin(ssid, pass); // NOMBRE DE LA RED WIFI Y CONTRASEÑA
-  client.begin("192.168.1.38", 1883, net);
+  client.begin("192.168.11.170", 1883, net);
   connect();
 
   srand(time(NULL));
@@ -98,9 +98,20 @@ void loop()
   delay(500);
 }
 
-//**DETECTA MEDIDAS FUERA DEL RANGO DE TEMP PERMITIDO, GENERANDO ESTADO DE ALERTA**
+//==========ADQUISICION DE DATOS A TRAVES DEL ADC Y CONVERSION A °C=============
+
+float LeerTemperatura()
+{
+  // Se simula un sensor de temperatura
+
+  return temperatura = ((rand() % 50 + (260 / 113)) + 10 + (260 / 113)) / 1.1; // Rango aproximado de 12 a 58°C de num decimales
+}
+
+//*****DETECTA MEDIDAS FUERA DEL RANGO DE TEMP PERMITIDO, GENERANDO ESTADO DE ALERTA*******
+
 void estadoLed()
 {
+
   // Estado normal
   if (temp <= 25)
   {
@@ -108,8 +119,6 @@ void estadoLed()
     digitalWrite(ledRojo, LOW);
     digitalWrite(ledVerde, HIGH);
     digitalWrite(ledAmarillo, LOW);
-    ESTADO = "NORMAL";
-    Serial.println();
   }
 
   // Estado alerta
@@ -118,64 +127,26 @@ void estadoLed()
     digitalWrite(ledVerde, LOW);
     digitalWrite(ledRojo, LOW);
     digitalWrite(ledAmarillo, HIGH);
-    ESTADO = "PRECAUCION";
-    Serial.println();
   }
 
   // Estado critico
-  if (temp >= 30)
+  if (temp > 30)
   {
     digitalWrite(ledVerde, LOW);
     digitalWrite(ledRojo, HIGH);
     digitalWrite(ledAmarillo, LOW);
-    ESTADO = "CRITICO";
-    Serial.println();
   }
 }
 
 //++++++APAGA TODO LOS LEDS LUEGO DE PULSAR POR 2da VEZ EL BUTTON+++++++
+
 void apagarLeds()
 {
   digitalWrite(ledInterno, LOW);
+
   digitalWrite(ledRojo, LOW);
   digitalWrite(ledVerde, LOW);
   digitalWrite(ledAmarillo, LOW);
-}
-
-// Valores de temperatura
-float LeerTemperatura()
-{
-  float vect[20] = {10.2,
-                    13.2,
-                    19.2,
-                    25.3,
-                    33.8,
-                    27.9,
-                    40.3,
-                    31.5,
-                    42.9,
-                    57.6,
-                    24.5,
-                    31.3,
-                    28.9,
-                    33.3,
-                    38.8,
-                    26.4,
-                    42.9,
-                    21.5,
-                    40.9,
-                    61.6};
-  static int i = 0;
-  if (i < 19)
-  {
-    i++;
-  }
-  else
-  {
-    i = 0;
-  }
-  float aux = vect[i];
-  return aux;
 }
 
 //---SE PRESIONA POR SEGUNDA VEZ EL BOTON Y SALE DEL BUCLE WHILE------
@@ -188,16 +159,15 @@ void pulsadorDeCorte()
   }
 }
 
-//_____PUBLICAR_____
+//______________PUBLICAR______________
 void publicar()
 {
   // Se envia el estado de temperatura y el valor de temperatura
-
   String mensaje = "{\"topico1\": \" " + ESTADO + " \" ,\"topico2\":" + String(temp) + "}";
   client.publish("Temp", mensaje);
 }
 
-//_____CONEXION_______
+//______________CONEXION__________________
 void connect()
 {
 
